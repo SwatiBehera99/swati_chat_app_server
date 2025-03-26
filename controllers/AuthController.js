@@ -21,7 +21,6 @@ export const signup = async (req, res, next) => {
         secure: true,
         sameSite: "None",
       });
-
       return res.status(201).json({
         user: {
           id: user?.id,
@@ -36,8 +35,7 @@ export const signup = async (req, res, next) => {
       return res.status(400).send("Email and Password Required");
     }
   } catch (err) {
-    console.log(err);
-    return res.status(500).send("Internal Server Error");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -53,11 +51,7 @@ export const login = async (req, res, next) => {
       if (!auth) {
         return res.status(400).send("Invalid Password");
       }
-      res.cookie("jwt", createToken(email, user.id), {
-        maxAge,
-        secure: true,
-        sameSite: "None",
-      });
+      res.cookie("jwt", createToken(email, user.id), { maxAge, secure: true, sameSite: "None", });
       return res.status(200).json({
         user: {
           id: user?.id,
@@ -72,7 +66,7 @@ export const login = async (req, res, next) => {
       return res.status(400).send("Email and Password Required");
     }
   } catch (err) {
-    return res.status(500).send("Internal Server Error");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -90,14 +84,10 @@ export const getUserInfo = async (request, response, next) => {
           profileSetup: userData.profileSetup,
           color: userData.color,
         });
-      } else {
-        return response.status(404).send("User with the given id not found.");
-      }
-    } else {
-      return response.status(404).send("User id not found.");
-    }
+      } else { return response.status(404).send("User with the given id not found."); }
+    } else { return response.status(404).send("User id not found."); }
   } catch (error) {
-    return response.status(500).send("Internal Server Error");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -106,7 +96,7 @@ export const logout = async (request, response, next) => {
     response.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
     return response.status(200).send("Logout successful");
   } catch (err) {
-    return response.status(500).send("Internal Server Error");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -122,16 +112,8 @@ export const updateProfile = async (request, response, next) => {
     }
     const userData = await User.findByIdAndUpdate(
       userId,
-      {
-        firstName,
-        lastName,
-        color,
-        profileSetup: true,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
+      { firstName, lastName, color, profileSetup: true, },
+      { new: true, runValidators: true, }
     );
     return response.status(200).json({
       id: userData.id,
@@ -143,7 +125,7 @@ export const updateProfile = async (request, response, next) => {
       color: userData.color,
     });
   } catch (error) {
-    return response.status(500).send("Internal Server Error.");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -163,8 +145,7 @@ export const addProfileImage = async (request, response, next) => {
       return response.status(404).send("File is required.");
     }
   } catch (error) {
-    console.log({ error });
-    return response.status(500).send("Internal Server Error.");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -179,7 +160,6 @@ export const removeProfileImage = async (request, response, next) => {
     await user.save();
     return response.status(200).json({ message: "Profile image removed successfully." });
   } catch (error) {
-    console.log({ error });
-    return response.status(500).send("Internal Server Error.");
+    return response.status(500).json({ message: error.message });
   }
 };

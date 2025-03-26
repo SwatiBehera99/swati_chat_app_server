@@ -8,34 +8,24 @@ export const getAllContacts = async (request, response, next) => {
       { _id: { $ne: request.userId } },
       "firstName lastName _id"
     );
-
     const contacts = users.map((user) => ({
       label: `${user.firstName} ${user.lastName}`,
       value: user._id,
     }));
-
     return response.status(200).json({ contacts });
   } catch (error) {
-    console.log({ error });
-    return response.status(500).send("Internal Server Error.");
+    return response.status(500).json({ message: error.message });
   }
 };
 
 export const searchContacts = async (request, response, next) => {
   try {
     const { searchTerm } = request.body;
-
     if (searchTerm === undefined || searchTerm === null) {
       return response.status(400).send("Search Term is required.");
     }
-
-    const sanitizedSearchTerm = searchTerm.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
-
+    const sanitizedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(sanitizedSearchTerm, "i");
-
     const contacts = await User.find({
       $and: [
         { _id: { $ne: request.userId } },
@@ -46,8 +36,7 @@ export const searchContacts = async (request, response, next) => {
     });
     return response.status(200).json({ contacts });
   } catch (error) {
-    console.log({ error });
-    return response.status(500).send("Internal Server Error.");
+    return response.status(500).json({ message: error.message });
   }
 };
 
@@ -55,7 +44,6 @@ export const getContactsForList = async (req, res, next) => {
   try {
     let { userId } = req;
     userId = new mongoose.Types.ObjectId(userId);
-
     if (!userId) {
       return res.status(400).send("User ID is required.");
     }
@@ -110,7 +98,6 @@ export const getContactsForList = async (req, res, next) => {
 
     return res.status(200).json({ contacts });
   } catch (error) {
-    console.error("Error getting user contacts:", error);
-    return res.status(500).send("Internal Server Error");
+    return response.status(500).json({ message: error.message });
   }
 };

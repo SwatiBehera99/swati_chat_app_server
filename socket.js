@@ -31,11 +31,7 @@ const setupSocket = (server) => {
   const sendMessage = async (message) => {
     const recipientSocketId = userSocketMap.get(message.recipient);
     const senderSocketId = userSocketMap.get(message.sender);
-
-    // Create the message
     const createdMessage = await Message.create(message);
-
-    // Find the created message by its ID and populate sender and recipient details
     const messageData = await Message.findById(createdMessage._id)
       .populate("sender", "id email firstName lastName image color")
       .populate("recipient", "id email firstName lastName image color")
@@ -44,8 +40,6 @@ const setupSocket = (server) => {
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receiveMessage", messageData);
     }
-
-    // Optionally, send the message back to the sender (e.g., for message confirmation)
     if (senderSocketId) {
       io.to(senderSocketId).emit("receiveMessage", messageData);
     }
@@ -53,11 +47,9 @@ const setupSocket = (server) => {
 
   const sendChannelMessage = async (message) => {
     const { channelId, sender, content, messageType, fileUrl } = message;
-
-    // Create and save the message
     const createdMessage = await Message.create({
       sender,
-      recipient: null, // Channel messages don't have a single recipient
+      recipient: null,
       content,
       messageType,
       timestamp: new Date(),
@@ -67,15 +59,10 @@ const setupSocket = (server) => {
     const messageData = await Message.findById(createdMessage._id)
       .populate("sender", "id email firstName lastName image color")
       .exec();
-
-    // Add message to the channel
     await Channel.findByIdAndUpdate(channelId, {
       $push: { messages: createdMessage._id },
     });
-
-    // Fetch all members of the channel
     const channel = await Channel.findById(channelId).populate("members");
-
     const finalData = { ...messageData._doc, channelId: channel._id };
     if (channel && channel.members) {
       channel.members.forEach((member) => {
